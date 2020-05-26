@@ -47,7 +47,7 @@ class VisCallback(tf.keras.callbacks.Callback):
             topic_rep = self.etm.generate_topic_words()
             topic_words = [[self.vocab[i] for i in x] for x in topic_rep]
             for i, topic in enumerate(topic_words):
-                print('topic {}:{}'.format(i, ','.join(topic)))
+                print('topic {}:{}\n'.format(i, ', '.join(topic)))
             self.etm.model.save_weights(os.path.join(self.save_path, '{}_weight'.format(epoch)))
 
 
@@ -77,4 +77,4 @@ if __name__ == '__main__':
 
     optimizer = tf.keras.optimizers.Adam(args.lr)
     etm.model.compile(optimizer=optimizer, loss=None)
-    etm.model.fit(data, epochs=args.epochs, batch_size=args.batch_size)
+    etm.model.fit(data, epochs=args.epochs, batch_size=args.batch_size, callbacks=[vis])
