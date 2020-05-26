@@ -118,7 +118,7 @@ class ETM:
 
         recon_loss = - tf.reduce_sum(lookup_matrix * bows, axis=-1)
         loss = recon_loss + kl_theta
-        # loss = tf.reduce_mean(loss)
+        loss = tf.reduce_mean(loss)
         loss = tf.keras.layers.Activation('linear', dtype=tf.float32)(loss)
         self.model = tf.keras.Model(input_layer, [theta, normal_bows])
         self.model.add_loss(loss)
