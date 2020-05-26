@@ -76,5 +76,5 @@ if __name__ == '__main__':
     vis = VisCallback(etm, vocab, args.save_path)
 
     optimizer = tf.keras.optimizers.Adam(args.lr)
-    etm.model.compile(optimizer=optimizer, loss=tf.keras.losses.MeanSquaredError())
+    etm.model.compile(optimizer=optimizer, loss=None)
     etm.model.fit(data, data, epochs=args.epochs, batch_size=args.batch_size, callbacks=[vis])
