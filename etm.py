@@ -100,10 +100,10 @@ class ETM:
         self.sampler = Reparameterize()
 
     def build(self):
-        input_layer = layers.Input(batch_shape=(None, 128), dtype=tf.int32)
+        input_layer = layers.Input(batch_shape=(None, None), dtype=tf.int32)
 
         bows = tf.reduce_sum(tf.one_hot(input_layer, self.vocab_size), axis=1)
-        # bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([1, 2], self.vocab_size), axis=0)))(bows)
+        bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([1, 2], self.vocab_size), axis=0)))(bows)
 
         normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
 
@@ -118,7 +118,7 @@ class ETM:
 
         recon_loss = - tf.reduce_sum(lookup_matrix * bows, axis=-1)
         loss = recon_loss + kl_theta
-        loss = tf.reduce_mean(loss)
+        # loss = tf.reduce_mean(loss)
         loss = tf.keras.layers.Activation('linear', dtype=tf.float32)(loss)
         self.model = tf.keras.Model(input_layer, [theta, normal_bows])
         self.model.add_loss(loss)
@@ -204,7 +204,7 @@ class ETM:
 
 
 if __name__ == '__main__':
-    m = ETM_ori(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
+    m = ETM(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
     m.build()
     print(m.model.summary())
     a = np.random.randint(0, 1000, (64, 128))
