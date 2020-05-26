@@ -129,7 +129,7 @@ class ETM(tf.keras.layers.Layer):
 
 
     def generate_topic_words(self):
-        beta = tf.einsum('TE,VE->TV', self.modelparam.alpha, self.modelparam.rho)
+        beta = tf.einsum('TE,VE->TV', self.alpha, self.rho)
         beta = layers.Softmax(axis=-1)(beta)
         represent_sort = tf.argsort(beta, direction='DESCENDING')
         represent_sort = represent_sort[:, :20].numpy()
