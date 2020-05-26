@@ -100,7 +100,7 @@ class ETM:
         self.sampler = Reparameterize()
 
     def build(self):
-        input_layer = layers.Input(batch_shape=(None, None), dtype=tf.int32)
+        input_layer = layers.Input(batch_shape=(None, 128), dtype=tf.int32)
 
         bows = tf.reduce_sum(tf.one_hot(input_layer, self.vocab_size), axis=1)
         # bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([1, 2], self.vocab_size), axis=0)))(bows)
