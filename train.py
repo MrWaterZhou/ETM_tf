@@ -52,6 +52,8 @@ class VisCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == '__main__':
+    vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
+
     if args.emb_path is not None:
         embedding = np.load(args.emb_path)
     else:
@@ -59,14 +61,13 @@ if __name__ == '__main__':
 
     # build model
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
-              train_embeddings=args.train_embeddings, embeddings=embedding, enc_drop=args.enc_drop)
+              train_embeddings=args.train_embeddings, embeddings=embedding, enc_drop=args.enc_drop, vocab_size=len(vocab))
     etm.build()
     print(etm.model.summary())
 
     # loading data
     data = pd.read_csv(args.data_path, header=None, na_filter=False, delim_whitespace=True, dtype=int).to_numpy()
     np.random.shuffle(data)
-    vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
 
     # start training
     if not os.path.exists(args.save_path):
