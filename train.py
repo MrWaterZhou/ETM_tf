@@ -48,7 +48,7 @@ class VisCallback(tf.keras.callbacks.Callback):
             topic_words = [[self.vocab[i] for i in x] for x in topic_rep]
             for i, topic in enumerate(topic_words):
                 print('topic {}:{}\n'.format(i, ', '.join(topic)))
-            self.etm.model.save_weights(os.path.join(self.save_path, '{}_weight'.format(epoch)))
+            self.model.save_weights(os.path.join(self.save_path, '{}_weight'.format(epoch)))
 
 
 if __name__ == '__main__':
