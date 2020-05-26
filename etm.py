@@ -83,12 +83,12 @@ class ETM:
 
         ## word embedding
         if train_embeddings:
-            self.rho = tf.Variable(tf.random.normal((vocab_size, rho_size)))
+            self.rho = tf.Variable(tf.random.normal((vocab_size, rho_size)), trainable=True)
         else:
             self.rho = tf.Variable(embeddings, trainable=False)
 
         ## topic embedding matrix
-        self.alpha = tf.Variable(tf.random.normal((num_topics, rho_size)))
+        self.alpha = tf.Variable(tf.random.normal((num_topics, rho_size)), trainable=True)
 
         ## vi encoder
         self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
@@ -130,6 +130,7 @@ class ETM:
         represent_sort = represent_sort[:, :20].numpy()
 
         return represent_sort
+
 
 #
 # class ETM:
@@ -207,7 +208,5 @@ if __name__ == '__main__':
     m = ETM(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
     m.build()
     print(m.model.summary())
-    a = np.random.randint(0, 1000, (64, 128))
-    print(m.model.predict(a))
 
-    print(m.generate_topic_words())
+    print(m.model.trainable_variables)
