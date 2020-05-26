@@ -116,8 +116,11 @@ class ETM:
         recon_loss = recon_loss * tf.cast(input_mask, tf.float32)
         recon_loss = tf.einsum('BT->B', recon_loss) / tf.reduce_sum(tf.cast(input_mask, tf.float32), axis=-1)
 
+        loss = recon_loss + kl_theta
+        loss = tf.reduce_mean(loss)
+        loss = tf.keras.layers.Activation('linear')(loss)
         self.model = tf.keras.Model(input_layer, theta)
-        self.model.add_loss(tf.reduce_mean(recon_loss + kl_theta))
+        self.model.add_loss(loss)
 
     def generate_topic_words(self):
         beta = tf.einsum('TE,VE->TV', self.alpha, self.rho.embeddings)
