@@ -61,7 +61,8 @@ if __name__ == '__main__':
 
     # build model
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
-              train_embeddings=args.train_embeddings, embeddings=embedding, enc_drop=args.enc_drop, vocab_size=len(vocab))
+              train_embeddings=args.train_embeddings, embeddings=embedding, enc_drop=args.enc_drop,
+              vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
     etm.build()
     print(etm.model.summary())
 
