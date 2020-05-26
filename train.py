@@ -77,4 +77,4 @@ if __name__ == '__main__':
 
     optimizer = tf.keras.optimizers.Adam(args.lr)
     etm.model.compile(optimizer=optimizer, loss=None)
-    etm.model.fit(data, epochs=args.epochs, batch_size=args.batch_size, callbacks=[vis])
+    etm.model.fit(data, epochs=args.epochs, batch_size=args.batch_size)
