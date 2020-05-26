@@ -4,13 +4,20 @@ from tensorflow.keras import layers
 from tensorflow.keras import backend as K
 
 
-class MaskPadding(tf.keras.layers.Layer):
-    def __init__(self, vocab_size):
-        self.vocab_size = vocab_size
+class ModelParams(tf.keras.layers.Layer):
+    def __init__(self, num_topic, num_vocab, emb_size, train_embeddings, embeddings):
+        # ## word embedding
+        w_init = tf.random_normal_initializer()
+        if train_embeddings:
+            self.rho = tf.Variable(w_init(shape=(num_vocab, emb_size)), trainable=True)
+        else:
+            self.rho = tf.Variable(embeddings, trainable=False)
+        #
+        ## topic embedding matrix
+        self.alpha = tf.Variable((w_init(shape=(num_topic, emb_size))), trainable=True)
 
     def call(self, inputs, **kwargs):
-        bos_mask = 1 - tf.reduce_sum(tf.one_hot([1, 2], self.vocab_size), axis=0)
-        return bos_mask * inputs
+        return self.alpha, self.rho
 
 
 class SoftmaxWithMask(tf.keras.layers.Layer):
@@ -68,9 +75,11 @@ class Decoder(layers.Layer):
         return tf.math.log(res + 1e-5)
 
 
-class ETM:
+class ETM(tf.keras.layers.Layer):
     def __init__(self, num_topics, vocab_size, t_hidden_size, rho_size,
-                 theta_act, embeddings=None, train_embeddings=True, enc_drop=0.5, seq_length=128):
+                 theta_act, embeddings=None, train_embeddings=True, enc_drop=0.5, seq_length=128, name='etm', **kwargs):
+        super(ETM, self).__init__(name=name, **kwargs)
+
         self.num_topics = num_topics
         self.vocab_size = vocab_size
         self.t_hidden_size = t_hidden_size
@@ -78,17 +87,14 @@ class ETM:
         self.enc_drop = enc_drop
         self.seq_length = seq_length
 
-        ## topic_list
-        self.topic_list = tf.constant([list(range(num_topics))])
-
-        ## word embedding
+        w_init = tf.random_normal_initializer()
         if train_embeddings:
-            self.rho = tf.Variable(tf.random.normal((vocab_size, rho_size)), trainable=True)
+            self.rho = tf.Variable(w_init(shape=(vocab_size, rho_size)), trainable=True)
         else:
             self.rho = tf.Variable(embeddings, trainable=False)
-
+        #
         ## topic embedding matrix
-        self.alpha = tf.Variable(tf.random.normal((num_topics, rho_size)), trainable=True)
+        self.alpha = tf.Variable((w_init(shape=(num_topics, rho_size))), trainable=True)
 
         ## vi encoder
         self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
@@ -99,9 +105,7 @@ class ETM:
         ## sampling
         self.sampler = Reparameterize()
 
-    def build(self):
-        input_layer = layers.Input(batch_shape=(None, None), dtype=tf.int32)
-
+    def call(self, input_layer, **kwargs):
         bows = tf.reduce_sum(tf.one_hot(input_layer, self.vocab_size), axis=1)
         bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([1, 2], self.vocab_size), axis=0)))(bows)
 
@@ -120,11 +124,12 @@ class ETM:
         loss = recon_loss + kl_theta
         loss = tf.reduce_mean(loss)
         loss = tf.keras.layers.Activation('linear', dtype=tf.float32)(loss)
-        self.model = tf.keras.Model(input_layer, [theta, normal_bows])
-        self.model.add_loss(loss)
+        self.add_loss(loss)
+        return theta
+
 
     def generate_topic_words(self):
-        beta = tf.einsum('TE,VE->TV', self.alpha, self.rho)
+        beta = tf.einsum('TE,VE->TV', self.modelparam.alpha, self.modelparam.rho)
         beta = layers.Softmax(axis=-1)(beta)
         represent_sort = tf.argsort(beta, direction='DESCENDING')
         represent_sort = represent_sort[:, :20].numpy()
@@ -206,7 +211,5 @@ class ETM:
 
 if __name__ == '__main__':
     m = ETM(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
-    m.build()
-    print(m.model.summary())
-
-    print(m.model.trainable_variables)
+    input = layers.Input(batch_shape=(None,128),dtype=tf.int32)
+    model = tf.keras.Model(input,m(input))
