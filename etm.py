@@ -4,6 +4,14 @@ from tensorflow.keras import layers
 from tensorflow.keras import backend as K
 
 
+class Lookup(tf.keras.layers.Layer):
+    def call(self, inputs):
+        lookup_matrix, input_layer = inputs
+        recon_loss = tf.map_fn(lambda x: tf.nn.embedding_lookup(x[0], x[1]), (lookup_matrix, input_layer),
+                               dtype=tf.float32)
+        return recon_loss
+
+
 class SoftmaxWithMask(tf.keras.layers.Layer):
     def call(self, inputs: tf.Tensor, mask, axis):
         mask = tf.cast(mask, inputs.dtype)
@@ -109,9 +117,8 @@ class ETM:
         beta = layers.Softmax(axis=-1)(beta)
 
         lookup_matrix = self.decoder([theta, beta])  # (batch, num_vocab)
-        one_hot_input = tf.one_hot(input_layer, self.vocab_size)
 
-        recon_loss = - tf.einsum('BV,BTV->BT', lookup_matrix, one_hot_input)
+        recon_loss = Lookup()([lookup_matrix,input_layer])
         recon_loss = recon_loss * tf.cast(input_mask, tf.float32)
         recon_loss = tf.einsum('BT->B', recon_loss) / tf.reduce_sum(tf.cast(input_mask, tf.float32), axis=-1)
 
