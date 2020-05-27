@@ -59,13 +59,28 @@ if __name__ == '__main__':
     vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
 
     if args.emb_path is not None:
-        embedding = np.load(args.emb_path)
+        vectors = {}
+        with open(args.emb_path, 'rb') as f:
+            for l in f:
+                line = l.decode().split()
+                word = line[0]
+                if word in vocab:
+                    vect = np.array(line[1:]).astype(np.float)
+                    vectors[word] = vect
+        embeddings = np.zeros((len(vocab), args.emb_size))
+        words_found = 0
+        for i, word in enumerate(vocab):
+            try:
+                embeddings[i] = vectors[word]
+                words_found += 1
+            except KeyError:
+                embeddings[i] = np.random.normal(scale=0.6, size=(args.emb_size,))
     else:
-        embedding = None
+        embeddings = None
 
     # build model
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
-              train_embeddings=args.train_embeddings, embeddings=embedding, enc_drop=args.enc_drop,
+              train_embeddings=args.train_embeddings, embeddings=embeddings, enc_drop=args.enc_drop,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
     input_layer = tf.keras.layers.Input(batch_shape=(None, 128), dtype=tf.int32)
     model = tf.keras.Model(input_layer,etm(input_layer))
