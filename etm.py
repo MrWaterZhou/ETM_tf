@@ -4,8 +4,6 @@ from tensorflow.keras import layers
 from tensorflow.keras import backend as K
 
 
-
-
 class SoftmaxWithMask(tf.keras.layers.Layer):
     def call(self, inputs: tf.Tensor, mask, axis):
         mask = tf.cast(mask, inputs.dtype)
@@ -48,7 +46,7 @@ class Encoder(layers.Layer):
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
         kl_theta = -0.5 * tf.reduce_sum(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
-                                         axis=-1)
+                                        axis=-1)
         return mu_theta, logsigma_theta, kl_theta
 
 
@@ -105,12 +103,15 @@ class ETM(tf.keras.layers.Layer):
         lookup_matrix = self.decoder([theta, beta])  # (batch, num_vocab)
 
         recon_loss = - tf.reduce_sum(lookup_matrix * bows, axis=-1)
-        loss = tf.reduce_mean(recon_loss) + tf.reduce_mean(kl_theta)
+
+        topic_loss = tf.einsum('TE,TE->TT', self.alpha, self.alpha)
+        topic_loss = layers.Softmax(axis=-1)(topic_loss)
+        topic_loss = tf.reduce_sum(tf.reduce_sum(topic_loss))
+        loss = tf.reduce_mean(recon_loss) + tf.reduce_mean(kl_theta) + topic_loss
         # loss = tf.reduce_mean(loss)
         loss = tf.keras.layers.Activation('linear', dtype=tf.float32)(loss)
         self.add_loss(loss)
         return theta
-
 
     def generate_topic_words(self):
         beta = tf.einsum('TE,VE->TV', self.alpha, self.rho)
@@ -123,5 +124,5 @@ class ETM(tf.keras.layers.Layer):
 
 if __name__ == '__main__':
     m = ETM(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
-    input = layers.Input(batch_shape=(None,128),dtype=tf.int32)
-    model = tf.keras.Model(input,m(input))
+    input = layers.Input(batch_shape=(None, 128), dtype=tf.int32)
+    model = tf.keras.Model(input, m(input))
