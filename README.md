@@ -7,7 +7,7 @@
 
 ## Preprocess Data
 
-1. tokenize text and generate vocabulary file(vocab.txt, first line must be "<PAD>")
+1. tokenize text and generate vocabulary file(vocab.txt, first line must be "\<PAD\>")
 2. encode text as ids(data.txt, a sentence per line, you don't have to pad each line to a same length)
 3. train word2vec(embeddings.txt, you can use code from the original implement https://github.com/adjidieng/ETM)
 
