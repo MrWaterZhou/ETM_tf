@@ -4,21 +4,6 @@ from tensorflow.keras import layers
 from tensorflow.keras import backend as K
 
 
-class ModelParams(tf.keras.layers.Layer):
-    def __init__(self, num_topic, num_vocab, emb_size, train_embeddings, embeddings):
-        # ## word embedding
-        w_init = tf.random_normal_initializer()
-        if train_embeddings:
-            self.rho = tf.Variable(w_init(shape=(num_vocab, emb_size)), trainable=True)
-        else:
-            self.rho = tf.Variable(embeddings, trainable=False)
-        #
-        ## topic embedding matrix
-        self.alpha = tf.Variable((w_init(shape=(num_topic, emb_size))), trainable=True)
-
-    def call(self, inputs, **kwargs):
-        return self.alpha, self.rho
-
 
 class SoftmaxWithMask(tf.keras.layers.Layer):
     def call(self, inputs: tf.Tensor, mask, axis):
@@ -105,9 +90,9 @@ class ETM(tf.keras.layers.Layer):
         ## sampling
         self.sampler = Reparameterize()
 
-    def call(self, input_layer, **kwargs):
-        bows = tf.reduce_sum(tf.one_hot(input_layer, self.vocab_size), axis=1)
-        bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([1, 2], self.vocab_size), axis=0)))(bows)
+    def call(self, bows, **kwargs):
+        # bows = tf.reduce_sum(tf.one_hot(input_layer, self.vocab_size), axis=1)
+        # bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([1, 2], self.vocab_size), axis=0)))(bows)
 
         normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
 
@@ -139,5 +124,6 @@ class ETM(tf.keras.layers.Layer):
 
 if __name__ == '__main__':
     m = ETM(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
-    input = layers.Input(batch_shape=(None,128),dtype=tf.int32)
+    input = layers.Input(batch_shape=(None,1000),dtype=tf.float32)
     model = tf.keras.Model(input,m(input))
+    print(model.summary())
