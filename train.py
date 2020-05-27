@@ -55,8 +55,6 @@ class VisCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == '__main__':
-    policy = mixed_precision.Policy('mixed_float16')
-    mixed_precision.set_policy(policy)
 
     vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
 
@@ -69,7 +67,7 @@ if __name__ == '__main__':
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
               train_embeddings=args.train_embeddings, embeddings=embedding, enc_drop=args.enc_drop,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
-    input_layer = tf.keras.layers.Input(batch_shape=(None, 128), dtype=tf.int16)
+    input_layer = tf.keras.layers.Input(batch_shape=(None, 128), dtype=tf.int32)
     model = tf.keras.Model(input_layer,etm(input_layer))
     print(model.summary())
 
