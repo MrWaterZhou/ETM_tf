@@ -133,7 +133,7 @@ class ETM(tf.keras.layers.Layer):
 
 
         normal_alpha = self.alpha / tf.norm(self.alpha,axis=-1, keepdims=True)
-        diff_loss = tf.reduce_sum(1+tf.matmul(normal_alpha, normal_alpha, transpose_b=True),axis=-1)
+        diff_loss = 10.0 * tf.reduce_sum(tf.matmul(normal_alpha, normal_alpha, transpose_b=True),axis=-1)
         loss = tf.reduce_mean(recon_loss) + tf.reduce_mean(kl_theta) + tf.reduce_mean(diff_loss)
 
         # loss = tf.reduce_mean(loss)
