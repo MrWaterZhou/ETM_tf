@@ -75,6 +75,7 @@ if __name__ == '__main__':
                 words_found += 1
             except KeyError:
                 embeddings[i] = np.random.normal(scale=0.6, size=(args.rho_size,))
+        embeddings = np.float32(embeddings)
     else:
         embeddings = None
 
