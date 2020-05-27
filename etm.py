@@ -90,7 +90,7 @@ class ETM(tf.keras.layers.Layer):
 
     def call(self, input_layer, **kwargs):
         bows = tf.reduce_sum(tf.one_hot(input_layer, self.vocab_size), axis=1)
-        bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([1, 2], self.vocab_size), axis=0)))(bows)
+        bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([0, 1], self.vocab_size), axis=0)))(bows)
 
         normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
 
