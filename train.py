@@ -43,14 +43,14 @@ def load_dataset(filenames, batch_size):
 
     def parse(line):
         line = tf.strings.split(line)
-        x = tf.strings.to_number(line, tf.int32)
+        x = tf.strings.to_number(line, tf.float32)
         return x
 
 
     dataset = tf.data.TextLineDataset(filenames)
     dataset = dataset.map(parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.shuffle(2048)
-    dataset = dataset.padded_batch(batch_size, padded_shapes=(None, ))
+    dataset = dataset.padded_batch(batch_size, (None,))
     return dataset
 
 
@@ -112,4 +112,4 @@ if __name__ == '__main__':
 
     optimizer = tf.keras.optimizers.Adam(args.lr)
     model.compile(optimizer=optimizer, loss=None)
-    model.fit(data, epochs=args.epochs, batch_size=args.batch_size, callbacks=[vis])
+    model.fit(data, epochs=args.epochs, callbacks=[vis])
