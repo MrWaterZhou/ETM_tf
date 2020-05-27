@@ -85,6 +85,9 @@ if __name__ == '__main__':
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
     input_layer = tf.keras.layers.Input(batch_shape=(None, 128), dtype=tf.int32)
     model = tf.keras.Model(input_layer,etm(input_layer))
+
+    model.add_loss(model.get_layer('recon_loss').output)
+    model.add_loss(model.get_layer('kl_theta').output)
     print(model.summary())
 
     # loading data
