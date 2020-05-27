@@ -12,15 +12,6 @@ class SoftmaxWithMask(tf.keras.layers.Layer):
         softmax = tf.divide(masked_logits, tf.reduce_sum(masked_logits, axis, keepdims=True) + 1e-5)
         return softmax
 
-class Sampling(layers.Layer):
-  """Uses (z_mean, z_log_var) to sample z, the vector encoding a digit."""
-
-  def call(self, inputs):
-    z_mean, z_log_var = inputs
-    batch = tf.shape(z_mean)[0]
-    dim = tf.shape(z_mean)[1]
-    epsilon = tf.keras.backend.random_normal(shape=(batch, dim))
-    return z_mean + tf.exp(0.5 * z_log_var) * epsilon
 
 class Reparameterize(layers.Layer):
     def call(self, inputs, training=None):
@@ -54,10 +45,8 @@ class Encoder(layers.Layer):
         x = self.dropout_2(x)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
-        kl_theta = -0.5 * tf.reduce_mean(1 + logsigma_theta - tf.square(mu_theta) - tf.exp(logsigma_theta),
+        kl_theta = -0.5 * tf.reduce_mean(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
                                         axis=-1)
-        # kl_loss = - 0.5 * tf.reduce_mean(
-        #     logsigma_theta - tf.square(mu_theta) - tf.exp(logsigma_theta) + 1)
         return mu_theta, logsigma_theta, kl_theta
 
 
@@ -99,7 +88,7 @@ class ETM(tf.keras.layers.Layer):
         self.decoder = Decoder()
 
         ## sampling
-        self.sampler = Sampling()
+        self.sampler = Reparameterize()
 
     def call(self, input_layer, **kwargs):
         bows = tf.reduce_sum(tf.one_hot(input_layer, self.vocab_size), axis=1)
