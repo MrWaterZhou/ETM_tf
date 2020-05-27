@@ -129,19 +129,13 @@ class ETM(tf.keras.layers.Layer):
 
         recon_loss = - tf.reduce_sum(lookup_matrix * bows, axis=-1)
 
-
-
-
-        normal_alpha = self.alpha / tf.norm(self.alpha,axis=-1, keepdims=True)
-        diff_loss = 10.0 * tf.reduce_mean(1+tf.matmul(normal_alpha, normal_alpha, transpose_b=True),axis=-1)
-        loss = tf.reduce_mean(recon_loss) + tf.reduce_mean(kl_theta) + tf.reduce_mean(diff_loss)
+        loss = tf.reduce_mean(recon_loss) + tf.reduce_mean(kl_theta)
 
         # loss = tf.reduce_mean(loss)
         # loss = tf.keras.layers.Activation('linear', dtype=tf.float32, name='lossososo')(loss)
         self.add_loss(loss)
         self.add_metric(recon_loss, name='recon_loss', aggregation='mean')
         self.add_metric(kl_theta, name='kl_theta', aggregation='mean')
-        self.add_metric(diff_loss, name='diff_loss', aggregation='mean')
 
         return theta
 
