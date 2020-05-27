@@ -77,7 +77,9 @@ class ETM(tf.keras.layers.Layer):
             self.rho = tf.Variable(embeddings, trainable=False)
         #
         ## topic embedding matrix
-        self.alpha = tf.Variable((w_init(shape=(num_topics, rho_size))), trainable=True)
+        idx = list(range(len(embeddings)))
+        np.random.shuffle(idx)
+        self.alpha = tf.Variable(embeddings[idx[:self.num_topics]], trainable=True)
 
         ## vi encoder
         self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
