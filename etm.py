@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras import layers
 from tensorflow.keras import backend as K
-from tensorflow_core.python import GlorotUniform,GlorotNormal
+from tensorflow_core.python import GlorotUniform, GlorotNormal
 
 
 class SoftmaxWithMask(tf.keras.layers.Layer):
@@ -51,6 +51,26 @@ class Encoder(layers.Layer):
         return mu_theta, logsigma_theta, kl_theta
 
 
+class EncoderShareEmbedding(layers.Layer):
+    def __init__(self, num_topic, rho, name, activation, enc_drop, **kwargs):
+        super(Encoder, self).__init__(name=name, **kwargs)
+        self.rho = rho
+        self.activation = activation
+        self.dropout_2 = layers.Dropout(enc_drop)
+        self.dense_mean = layers.Dense(num_topic)
+        self.dense_log_var = layers.Dense(num_topic)
+
+    def call(self, inputs):
+        x = tf.matmul(inputs, self.rho)
+        x = layers.Activation(activation=self.activation)
+        x = self.dropout_2(x)
+        mu_theta = self.dense_mean(x)
+        logsigma_theta = self.dense_log_var(x)
+        kl_theta = -0.5 * tf.reduce_sum(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
+                                        axis=-1)
+        return mu_theta, logsigma_theta, kl_theta
+
+
 class Decoder(layers.Layer):
     def call(self, inputs, **kwargs):
         theta, beta = inputs
@@ -80,7 +100,8 @@ class ETM(tf.keras.layers.Layer):
         self.alpha = tf.Variable(w_init(shape=(num_topics, rho_size)), trainable=True)
 
         ## vi encoder
-        self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
+        # self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
+        self.encoder = EncoderShareEmbedding(num_topics, self.rho, 'encoder', theta_act, enc_drop)
 
         ## vi decoder
         self.decoder = Decoder()
@@ -95,7 +116,7 @@ class ETM(tf.keras.layers.Layer):
         normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
 
         mu_theta, logsigma_theta, kl_theta = self.encoder(normal_bows)
-        print(mu_theta,logsigma_theta,kl_theta)
+        print(mu_theta, logsigma_theta, kl_theta)
         z = self.sampler([mu_theta, logsigma_theta])
         theta = layers.Softmax(axis=-1)(z)  # ( batch, num_topics )
 
