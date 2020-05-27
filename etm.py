@@ -70,7 +70,7 @@ class ETM(tf.keras.layers.Layer):
         self.seq_length = seq_length
 
 
-        w_init = tf.random_uniform_initializer(-0.05,0.05)
+        w_init = tf.random_uniform_initializer(-0.1,0.1)
         if train_embeddings:
             self.rho = tf.Variable(w_init(shape=(vocab_size, rho_size)), trainable=True)
         else:
