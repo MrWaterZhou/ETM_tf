@@ -101,7 +101,7 @@ class ETM(tf.keras.layers.Layer):
 
         ## vi encoder
         # self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
-        self.encoder = EncoderShareEmbedding(num_topics, self.rho, 'encoder', t_hidden_size, theta_act, enc_drop)
+        self.encoder = EncoderShareEmbedding(num_topics, self.rho, 'encoder', t_hidden_size,  enc_drop)
 
         ## vi decoder
         self.decoder = Decoder()
