@@ -36,7 +36,6 @@ class Encoder(layers.Layer):
         super(Encoder, self).__init__(name=name, **kwargs)
         self.dense_proj_1 = layers.Dense(t_hidden_size, activation=activation)
         self.dense_proj_2 = layers.Dense(num_topic, activation=activation)
-        self.dropout_1 = layers.Dropout(enc_drop)
         self.dropout_2 = layers.Dropout(enc_drop)
 
         self.dense_mean = layers.Dense(num_topic)
@@ -44,7 +43,6 @@ class Encoder(layers.Layer):
 
     def call(self, inputs):
         x = self.dense_proj_1(inputs)
-        x = self.dropout_1(x)
         x = self.dense_proj_2(x)
         x = self.dropout_2(x)
         mu_theta = self.dense_mean(x)
@@ -118,7 +116,7 @@ class ETM(tf.keras.layers.Layer):
         beta = tf.einsum('TE,VE->TV', self.alpha, self.rho)
         beta = layers.Softmax(axis=-1)(beta)
         represent_sort = tf.argsort(beta, direction='DESCENDING')
-        represent_sort = represent_sort[:, :20].numpy()
+        represent_sort = represent_sort[:, :10].numpy()
 
         return represent_sort
 
