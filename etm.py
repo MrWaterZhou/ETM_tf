@@ -53,7 +53,7 @@ class Encoder(layers.Layer):
 
 class EncoderShareEmbedding(layers.Layer):
     def __init__(self, num_topic, rho, name, activation, enc_drop, **kwargs):
-        super(Encoder, self).__init__(name=name, **kwargs)
+        super(EncoderShareEmbedding, self).__init__(name=name, **kwargs)
         self.rho = rho
         self.activation = activation
         self.dropout_2 = layers.Dropout(enc_drop)
