@@ -30,9 +30,9 @@ class Reparameterize(layers.Layer):
 
 
 class Encoder(layers.Layer):
-    def __init__(self, num_topic, t_hidden_size, name, activation, enc_drop, rho, **kwargs):
+    def __init__(self, num_topic, t_hidden_size, name, activation, enc_drop, **kwargs):
         super(Encoder, self).__init__(name=name, **kwargs)
-        self.rho = rho
+        self.dense_proj_1 = layers.Dense(t_hidden_size, activation=activation)
         self.dense_proj_2 = layers.Dense(t_hidden_size, activation=activation)
         self.dropout_2 = layers.Dropout(enc_drop)
 
@@ -40,7 +40,7 @@ class Encoder(layers.Layer):
         self.dense_log_var = layers.Dense(num_topic)
 
     def call(self, inputs):
-        x = tf.einsum('BV,VE->BE', inputs, self.rho)
+        x = self.dense_proj_1(inputs)
         x = self.dense_proj_2(x)
         x = self.dropout_2(x)
         mu_theta = self.dense_mean(x)
@@ -79,7 +79,7 @@ class ETM(tf.keras.layers.Layer):
         self.alpha = tf.Variable((w_init(shape=(num_topics, rho_size))), trainable=True)
 
         ## vi encoder
-        self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop, self.rho)
+        self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
 
         ## vi decoder
         self.decoder = Decoder()
