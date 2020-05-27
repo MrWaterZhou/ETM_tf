@@ -49,7 +49,7 @@ class Encoder(layers.Layer):
         x = self.dropout_2(x)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
-        kl_theta = -0.5 * tf.reduce_mean(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
+        kl_theta = -0.5 * tf.reduce_sum(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
                                          axis=-1)
         return mu_theta, logsigma_theta, kl_theta
 
