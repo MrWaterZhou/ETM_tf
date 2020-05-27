@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import os
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
+
 
 parser = argparse.ArgumentParser(description='The Embedded Topic Model')
 
@@ -53,8 +55,8 @@ class VisCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == '__main__':
-    policy = tf.mixed_precision.Policy('mixed_float16')
-    tf.mixed_precision.set_policy(policy)
+    policy = mixed_precision.Policy('mixed_float16')
+    mixed_precision.set_policy(policy)
 
     vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
 
