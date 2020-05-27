@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras import layers
 from tensorflow.keras import backend as K
+from tensorflow_core.python import GlorotUniform
 
 
 class SoftmaxWithMask(tf.keras.layers.Layer):
@@ -69,7 +70,7 @@ class ETM(tf.keras.layers.Layer):
         self.enc_drop = enc_drop
         self.seq_length = seq_length
 
-        w_init = tf.random_uniform_initializer(-0.3, 0.3)
+        w_init = GlorotUniform()
         if train_embeddings:
             self.rho = tf.Variable(w_init(shape=(vocab_size, rho_size)), trainable=True)
         else:
