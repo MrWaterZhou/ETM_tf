@@ -53,6 +53,8 @@ class VisCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == '__main__':
+    policy = tf.mixed_precision.Policy('mixed_float16')
+    tf.mixed_precision.set_policy(policy)
 
     vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
 
