@@ -79,7 +79,7 @@ if __name__ == '__main__':
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
               train_embeddings=args.train_embeddings, embeddings=embedding, enc_drop=args.enc_drop,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
-    input_layer = tf.keras.layers.Input(batch_shape=(None, 128), dtype=tf.int32)
+    input_layer = tf.keras.layers.Input(batch_shape=(None, len(vocab)), dtype=tf.float32)
     model = tf.keras.Model(input_layer, etm(input_layer))
     print(model.summary())
 
