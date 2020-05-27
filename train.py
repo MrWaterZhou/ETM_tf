@@ -67,14 +67,14 @@ if __name__ == '__main__':
                 if word in vocab:
                     vect = np.array(line[1:]).astype(np.float)
                     vectors[word] = vect
-        embeddings = np.zeros((len(vocab), args.emb_size))
+        embeddings = np.zeros((len(vocab), args.rho_size))
         words_found = 0
         for i, word in enumerate(vocab):
             try:
                 embeddings[i] = vectors[word]
                 words_found += 1
             except KeyError:
-                embeddings[i] = np.random.normal(scale=0.6, size=(args.emb_size,))
+                embeddings[i] = np.random.normal(scale=0.6, size=(args.rho_size,))
     else:
         embeddings = None
 
