@@ -100,8 +100,8 @@ class ETM(tf.keras.layers.Layer):
         self.alpha = tf.Variable(w_init(shape=(num_topics, rho_size)), trainable=True)
 
         ## vi encoder
-        # self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
-        self.encoder = EncoderLSTM(num_topics, t_hidden_size, vocab_size, enc_drop, 'encoder')
+        self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
+        # self.encoder = EncoderLSTM(num_topics, t_hidden_size, vocab_size, enc_drop, 'encoder')
 
         ## vi decoder
         self.decoder = Decoder()
@@ -115,8 +115,8 @@ class ETM(tf.keras.layers.Layer):
 
         normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
 
-        # mu_theta, logsigma_theta, kl_theta = self.encoder(normal_bows)
-        mu_theta, logsigma_theta, kl_theta = self.encoder(input_layer)
+        mu_theta, logsigma_theta, kl_theta = self.encoder(normal_bows)
+        # mu_theta, logsigma_theta, kl_theta = self.encoder(input_layer)
 
         print(mu_theta, logsigma_theta, kl_theta)
         z = self.sampler([mu_theta, logsigma_theta])
