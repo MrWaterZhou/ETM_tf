@@ -46,10 +46,11 @@ def load_dataset(filenames, batch_size):
         x = tf.strings.to_number(line, tf.int32)
         return x
 
+
     dataset = tf.data.TextLineDataset(filenames)
-    dataset = dataset.batch(batch_size).map(parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.map(parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.shuffle(2048)
-    dataset = dataset.padded_batch(batch_size, padded_shapes=(batch_size, None))
+    dataset = dataset.padded_batch(batch_size, padded_shapes=(None, ))
     return dataset
 
 
