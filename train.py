@@ -7,7 +7,6 @@ import tensorflow as tf
 import os
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 
-
 parser = argparse.ArgumentParser(description='The Embedded Topic Model')
 
 ### data and file related arguments
@@ -36,7 +35,6 @@ parser.add_argument('--wdecay', type=float, default=1.2e-6, help='some l2 regula
 parser.add_argument('--anneal_lr', type=int, default=0, help='whether to anneal the learning rate or not')
 
 args = parser.parse_args()
-
 
 
 class VisCallback(tf.keras.callbacks.Callback):
@@ -84,10 +82,7 @@ if __name__ == '__main__':
               train_embeddings=args.train_embeddings, embeddings=embeddings, enc_drop=args.enc_drop,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
     input_layer = tf.keras.layers.Input(batch_shape=(None, 128), dtype=tf.int32)
-    model = tf.keras.Model(input_layer,etm(input_layer))
-
-    model.add_loss(model.get_layer('recon_loss').output)
-    model.add_loss(model.get_layer('kl_theta').output)
+    model = tf.keras.Model(input_layer, etm(input_layer))
     print(model.summary())
 
     # loading data

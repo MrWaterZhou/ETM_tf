@@ -104,12 +104,12 @@ class ETM(tf.keras.layers.Layer):
 
         recon_loss = - tf.reduce_sum(lookup_matrix * bows, axis=-1)
 
-        recon_loss = tf.keras.layers.Activation('linear', dtype=tf.float32, name='recon_loss')(tf.reduce_mean(recon_loss))
-        kl_theta   = tf.keras.layers.Activation('linear', dtype=tf.float32, name='kl_theta')(tf.reduce_mean(kl_theta))
+        loss = tf.reduce_mean(recon_loss) + tf.reduce_mean(kl_theta)
         # loss = tf.reduce_mean(loss)
         # loss = tf.keras.layers.Activation('linear', dtype=tf.float32, name='lossososo')(loss)
-        # self.add_loss('kl_theta':tf.reduce_mean(kl_theta))
-        return [theta,recon_loss,kl_theta]
+        self.add_loss(loss)
+        self.add_metric({'recon_loss': tf.reduce_mean(recon_loss), 'kl_theta':tf.reduce_mean(kl_theta)})
+        return theta
 
     def generate_topic_words(self):
         beta = tf.einsum('TE,VE->TV', self.alpha, self.rho)
