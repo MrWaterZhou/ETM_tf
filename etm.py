@@ -108,7 +108,9 @@ class ETM(tf.keras.layers.Layer):
         # loss = tf.reduce_mean(loss)
         # loss = tf.keras.layers.Activation('linear', dtype=tf.float32, name='lossososo')(loss)
         self.add_loss(loss)
-        self.add_metric({'recon_loss': tf.reduce_mean(recon_loss), 'kl_theta':tf.reduce_mean(kl_theta)})
+        self.add_metric(recon_loss,name='recon_loss',aggregation='mean')
+        self.add_metric(kl_theta,name='kl_theta',aggregation='mean')
+
         return theta
 
     def generate_topic_words(self):
