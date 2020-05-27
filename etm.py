@@ -45,7 +45,7 @@ class Encoder(layers.Layer):
         x = self.dropout_2(x)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
-        kl_theta = -0.5 * tf.reduce_mean(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
+        kl_theta = -0.5 * tf.reduce_sum(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
                                         axis=-1)
         return mu_theta, logsigma_theta, kl_theta
 
@@ -69,8 +69,7 @@ class ETM(tf.keras.layers.Layer):
         self.enc_drop = enc_drop
         self.seq_length = seq_length
 
-
-        w_init = tf.random_uniform_initializer(-0.1,0.1)
+        w_init = tf.random_uniform_initializer(-0.5, 0.5)
         if train_embeddings:
             self.rho = tf.Variable(w_init(shape=(vocab_size, rho_size)), trainable=True)
         else:
@@ -79,7 +78,7 @@ class ETM(tf.keras.layers.Layer):
         ## topic embedding matrix
         idx = list(range(len(embeddings)))
         np.random.shuffle(idx)
-        self.alpha = tf.Variable(embeddings[idx[:self.num_topics]], trainable=True)
+        self.alpha = tf.Variable(w_init(shape=(num_topics, rho_size)), trainable=True)
 
         ## vi encoder
         self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
@@ -111,8 +110,8 @@ class ETM(tf.keras.layers.Layer):
         # loss = tf.reduce_mean(loss)
         # loss = tf.keras.layers.Activation('linear', dtype=tf.float32, name='lossososo')(loss)
         self.add_loss(loss)
-        self.add_metric(recon_loss,name='recon_loss',aggregation='mean')
-        self.add_metric(kl_theta,name='kl_theta',aggregation='mean')
+        self.add_metric(recon_loss, name='recon_loss', aggregation='mean')
+        self.add_metric(kl_theta, name='kl_theta', aggregation='mean')
 
         return theta
 
