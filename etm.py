@@ -55,14 +55,14 @@ class EncoderShareEmbedding(layers.Layer):
     def __init__(self, num_topic, rho, name, t_hidden_size, enc_drop, **kwargs):
         super(EncoderShareEmbedding, self).__init__(name=name, **kwargs)
         self.rho = rho
-        self.dense_hidden = layers.Dense(t_hidden_size)
+        self.dense_hidden = layers.Dense(t_hidden_size, activation='relu')
         self.dropout_2 = layers.Dropout(enc_drop)
         self.dense_mean = layers.Dense(num_topic)
         self.dense_log_var = layers.Dense(num_topic)
 
     def call(self, inputs):
         x = tf.matmul(inputs, self.rho)
-        x = self.dense_hidden(x, activation='relu')
+        x = self.dense_hidden(x)
         x = self.dropout_2(x)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
