@@ -36,20 +36,6 @@ parser.add_argument('--anneal_lr', type=int, default=0, help='whether to anneal 
 args = parser.parse_args()
 
 
-def load_dataset(filenames, batch_size, vocab_size):
-    if not isinstance(filenames, list):
-        filenames = [filenames]
-
-    def parse(line):
-        line = tf.strings.split(line).to_tensor()
-        x = tf.strings.to_number(line, tf.int32)
-        x = tf.reduce_sum(tf.one_hot(x, vocab_size), axis=1)
-        return x
-
-    dataset = tf.data.TextLineDataset(filenames)
-    dataset = dataset.batch(batch_size).map(parse, num_parallel_calls=8)
-    return dataset
-
 
 class VisCallback(tf.keras.callbacks.Callback):
     def __init__(self, etm: ETM, vocab: list, save_path: str):
@@ -79,15 +65,13 @@ if __name__ == '__main__':
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
               train_embeddings=args.train_embeddings, embeddings=embedding, enc_drop=args.enc_drop,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
-    input_layer = tf.keras.layers.Input(batch_shape=(None, len(vocab)), dtype=tf.float32)
-    model = tf.keras.Model(input_layer, etm(input_layer))
+    input_layer = tf.keras.layers.Input(batch_shape=(None, 128), dtype=tf.int32)
+    model = tf.keras.Model(input_layer,etm(input_layer))
     print(model.summary())
 
     # loading data
     data = pd.read_csv(args.data_path, header=None, na_filter=False, delim_whitespace=True, dtype=int).to_numpy()
     np.random.shuffle(data)
-
-    data = load_dataset(args.data_path, args.batch_size, vocab_size=len(vocab))
 
     # start training
     if not os.path.exists(args.save_path):
@@ -96,4 +80,4 @@ if __name__ == '__main__':
 
     optimizer = tf.keras.optimizers.Adam(args.lr)
     model.compile(optimizer=optimizer, loss=None)
-    model.fit(data, epochs=args.epochs, callbacks=[vis])
+    model.fit(data, epochs=args.epochs, batch_size=args.batch_size, callbacks=[vis])
