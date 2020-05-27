@@ -23,6 +23,7 @@ To learn interpretable topics using ETM with pre-fitted word embeddings :
 
 ```
 python train.py --data_path data.txt --batch_size 512 --vocab_path vocab.txt --train_embeddings 0 --lr 0.0005 --epochs 1000 --emb_path embeddings.txt```
+```
 
 ## Citation
 
