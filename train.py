@@ -47,7 +47,7 @@ def load_dataset(filenames, batch_size, vocab_size):
         return x
 
     dataset = tf.data.TextLineDataset(filenames)
-    dataset = dataset.batch(batch_size).map(parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.batch(batch_size).map(parse, num_parallel_calls=8)
     return dataset
 
 
