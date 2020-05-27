@@ -106,9 +106,9 @@ class ETM(tf.keras.layers.Layer):
 
         lookup_matrix = self.decoder([theta, beta])  # (batch, num_vocab)
 
-        recon_loss = - tf.reduce_sum(lookup_matrix * normal_bows, axis=-1)
-        loss = recon_loss + kl_theta
-        loss = tf.reduce_mean(loss)
+        recon_loss = - tf.reduce_sum(lookup_matrix * bows, axis=-1)
+        loss = tf.reduce_mean(recon_loss) + tf.reduce_mean(kl_theta)
+        # loss = tf.reduce_mean(loss)
         loss = tf.keras.layers.Activation('linear', dtype=tf.float32)(loss)
         self.add_loss(loss)
         return theta
