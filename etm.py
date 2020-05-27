@@ -52,15 +52,17 @@ class Encoder(layers.Layer):
 
 
 class EncoderShareEmbedding(layers.Layer):
-    def __init__(self, num_topic, rho, name, activation, enc_drop, **kwargs):
+    def __init__(self, num_topic, rho, name, t_hidden_size, enc_drop, **kwargs):
         super(EncoderShareEmbedding, self).__init__(name=name, **kwargs)
         self.rho = rho
+        self.dense_hidden = layers.Dense(t_hidden_size)
         self.dropout_2 = layers.Dropout(enc_drop)
         self.dense_mean = layers.Dense(num_topic)
         self.dense_log_var = layers.Dense(num_topic)
 
     def call(self, inputs):
         x = tf.matmul(inputs, self.rho)
+        x = self.dense_hidden(x, activation='relu')
         x = self.dropout_2(x)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
@@ -99,7 +101,7 @@ class ETM(tf.keras.layers.Layer):
 
         ## vi encoder
         # self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
-        self.encoder = EncoderShareEmbedding(num_topics, self.rho, 'encoder', theta_act, enc_drop)
+        self.encoder = EncoderShareEmbedding(num_topics, self.rho, 'encoder', t_hidden_size, theta_act, enc_drop)
 
         ## vi decoder
         self.decoder = Decoder()
