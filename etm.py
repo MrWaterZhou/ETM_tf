@@ -45,7 +45,7 @@ class Encoder(layers.Layer):
         x = self.dropout_2(x)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
-        kl_theta = -0.5 * tf.reduce_mean(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
+        kl_theta = -0.5 * tf.reduce_sum(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
                                         axis=-1)
         return mu_theta, logsigma_theta, kl_theta
 
@@ -69,7 +69,8 @@ class ETM(tf.keras.layers.Layer):
         self.enc_drop = enc_drop
         self.seq_length = seq_length
 
-        w_init = tf.random_normal_initializer(stddev=1)
+
+        w_init = tf.random_uniform_initializer(-0.05,0.05)
         if train_embeddings:
             self.rho = tf.Variable(w_init(shape=(vocab_size, rho_size)), trainable=True)
         else:
