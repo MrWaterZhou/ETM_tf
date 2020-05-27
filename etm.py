@@ -54,11 +54,11 @@ class Encoder(layers.Layer):
         x = self.dropout_2(x)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
-        # kl_theta = -0.5 * tf.reduce_sum(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
-        #                                 axis=-1)
-        kl_loss = - 0.5 * tf.reduce_mean(
-            logsigma_theta - tf.square(mu_theta) - tf.exp(logsigma_theta) + 1)
-        return mu_theta, logsigma_theta, kl_loss
+        kl_theta = -0.5 * tf.reduce_mean(1 + logsigma_theta - tf.square(mu_theta) - tf.exp(logsigma_theta),
+                                        axis=-1)
+        # kl_loss = - 0.5 * tf.reduce_mean(
+        #     logsigma_theta - tf.square(mu_theta) - tf.exp(logsigma_theta) + 1)
+        return mu_theta, logsigma_theta, kl_theta
 
 
 class Decoder(layers.Layer):
@@ -118,12 +118,12 @@ class ETM(tf.keras.layers.Layer):
 
         recon_loss = - tf.reduce_sum(lookup_matrix * bows, axis=-1)
 
-        loss = tf.reduce_mean(recon_loss) + kl_theta
+        loss = tf.reduce_mean(recon_loss) + tf.reduce_mean(kl_theta)
         # loss = tf.reduce_mean(loss)
         # loss = tf.keras.layers.Activation('linear', dtype=tf.float32, name='lossososo')(loss)
         self.add_loss(loss)
         self.add_metric(recon_loss,name='recon_loss',aggregation='mean')
-        self.add_metric(kl_theta,name='kl_theta',aggregation=None)
+        self.add_metric(kl_theta,name='kl_theta',aggregation='mean')
 
         return theta
 
