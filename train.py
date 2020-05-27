@@ -42,7 +42,7 @@ def load_dataset(filenames, batch_size):
         filenames = [filenames]
 
     def parse(line):
-        line = tf.strings.split(line).to_tensor()
+        line = tf.strings.split(line)
         x = tf.strings.to_number(line, tf.int32)
         return x
 
