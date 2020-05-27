@@ -69,15 +69,13 @@ class ETM(tf.keras.layers.Layer):
         self.enc_drop = enc_drop
         self.seq_length = seq_length
 
-        w_init = tf.random_uniform_initializer(-0.5, 0.5)
+        w_init = tf.random_uniform_initializer(-0.3, 0.3)
         if train_embeddings:
             self.rho = tf.Variable(w_init(shape=(vocab_size, rho_size)), trainable=True)
         else:
             self.rho = tf.Variable(embeddings, trainable=False)
         #
         ## topic embedding matrix
-        idx = list(range(len(embeddings)))
-        np.random.shuffle(idx)
         self.alpha = tf.Variable(w_init(shape=(num_topics, rho_size)), trainable=True)
 
         ## vi encoder
@@ -96,6 +94,7 @@ class ETM(tf.keras.layers.Layer):
         normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
 
         mu_theta, logsigma_theta, kl_theta = self.encoder(normal_bows)
+        print(mu_theta,logsigma_theta,kl_theta)
         z = self.sampler([mu_theta, logsigma_theta])
         theta = layers.Softmax(axis=-1)(z)  # ( batch, num_topics )
 
@@ -128,3 +127,4 @@ if __name__ == '__main__':
     m = ETM(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
     input = layers.Input(batch_shape=(None, 128), dtype=tf.int32)
     model = tf.keras.Model(input, m(input))
+    print(model.summary())
