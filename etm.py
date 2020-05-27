@@ -115,7 +115,9 @@ class ETM(tf.keras.layers.Layer):
 
         normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
 
-        mu_theta, logsigma_theta, kl_theta = self.encoder(normal_bows)
+        # mu_theta, logsigma_theta, kl_theta = self.encoder(normal_bows)
+        mu_theta, logsigma_theta, kl_theta = self.encoder(input_layer)
+
         print(mu_theta, logsigma_theta, kl_theta)
         z = self.sampler([mu_theta, logsigma_theta])
         theta = layers.Softmax(axis=-1)(z)  # ( batch, num_topics )
