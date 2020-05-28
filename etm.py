@@ -90,7 +90,7 @@ class ETM(tf.keras.layers.Layer):
         self.enc_drop = enc_drop
         self.seq_length = seq_length
 
-        w_init = GlorotUniform()
+        w_init = tf.keras.initializers.RandomUniform(-1,1)
         if train_embeddings:
             self.rho = tf.Variable(w_init(shape=(vocab_size, rho_size)), trainable=True)
         else:
