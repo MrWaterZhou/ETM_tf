@@ -48,7 +48,7 @@ class Encoder(layers.Layer):
         logsigma_theta = self.dense_log_var(x)
         kl_theta = -0.5 * tf.reduce_sum(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
                                         axis=-1)
-        return mu_theta, logsigma_theta, kl_theta
+        return mu_theta, logsigma_theta, tf.maximum(kl_theta, 5.0)
 
 
 class EncoderLSTM(layers.Layer):
