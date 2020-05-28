@@ -121,7 +121,7 @@ class ETM(tf.keras.layers.Layer):
         print(mu_theta, logsigma_theta, kl_theta)
         z = self.sampler([mu_theta, logsigma_theta])
         # theta = layers.Softmax(axis=-1)(z)  # ( batch, num_topics )
-        theta = tf.sigmoid(z)
+        theta = layers.Softmax(axis=-1)(z)
 
         beta = tf.einsum('TE,VE->TV', self.alpha, self.rho)
         beta = layers.Softmax(axis=-1)(beta)
