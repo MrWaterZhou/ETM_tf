@@ -93,11 +93,15 @@ class ETM(tf.keras.layers.Layer):
         w_init = tf.keras.initializers.RandomUniform(-1,1)
         if train_embeddings:
             self.rho = tf.Variable(w_init(shape=(vocab_size, rho_size)), trainable=True)
+            self.alpha = tf.Variable(w_init(shape=(num_topics, rho_size)), trainable=True)
         else:
             self.rho = tf.Variable(embeddings, trainable=False)
-        #
+            idx = list(range(len(embeddings)))
+            np.random.shuffle(idx)
+            self.alpha = tf.Variable(embeddings[idx[:num_topics]], trainable=True)
+
         ## topic embedding matrix
-        self.alpha = tf.Variable(w_init(shape=(num_topics, rho_size)), trainable=True)
+
 
         ## vi encoder
         self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)

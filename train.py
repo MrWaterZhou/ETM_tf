@@ -60,7 +60,7 @@ class VisCallback(tf.keras.callbacks.Callback):
         self.vocab = vocab
         self.save_path = save_path
 
-    def on_epoch_end(self, epoch, logs=None):
+    def on_epoch_begin(self, epoch, logs=None):
         if epoch % 10 == 0:
             topic_rep = self.etm.generate_topic_words()
             topic_words = [[self.vocab[i] for i in x] for x in topic_rep]
