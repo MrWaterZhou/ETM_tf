@@ -75,9 +75,9 @@ if __name__ == '__main__':
 
     if args.emb_path is not None:
         vectors = {}
-        with open(args.emb_path, 'rb') as f:
+        with open(args.emb_path, 'r') as f:
             for l in f:
-                line = l.decode().split()
+                line = l.split()
                 word = line[0]
                 if word in vocab:
                     vect = np.array(line[1:]).astype(np.float)
