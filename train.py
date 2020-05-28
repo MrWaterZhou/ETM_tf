@@ -16,6 +16,7 @@ parser.add_argument('--emb_path', type=str, default=None,
 parser.add_argument('--save_path', type=str, default='./results', help='path to save results')
 parser.add_argument('--batch_size', type=int, default=1000, help='input batch size for training')
 parser.add_argument('--vocab_path', type=str, default=None)
+parser.add_argument('--predefine_path', type=str, default=None)
 
 ### model-related arguments
 parser.add_argument('--num_topics', type=int, default=50, help='number of topics')
@@ -46,7 +47,6 @@ def load_dataset(filenames, batch_size):
         x = tf.strings.to_number(line, tf.float32)
         return x
 
-
     dataset = tf.data.TextLineDataset(filenames)
     dataset = dataset.map(parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.shuffle(2048)
@@ -72,6 +72,9 @@ class VisCallback(tf.keras.callbacks.Callback):
 if __name__ == '__main__':
 
     vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
+    vocab_set = set(vocab)
+    predefine_topics = [x.strip().split(' ') for x in
+                        open(args.predefine_path, 'r').readlines()] if args.predefine_path is not None else []
 
     if args.emb_path is not None:
         vectors = {}
@@ -79,7 +82,7 @@ if __name__ == '__main__':
             for l in f:
                 line = l.split()
                 word = line[0]
-                if word in vocab:
+                if word in vocab_set:
                     vect = np.array(line[1:]).astype(np.float)
                     vectors[word] = vect
         embeddings = np.zeros((len(vocab), args.rho_size))
@@ -91,12 +94,27 @@ if __name__ == '__main__':
             except KeyError:
                 embeddings[i] = np.random.normal(scale=0.6, size=(args.rho_size,))
         embeddings = np.float32(embeddings)
+
+        idx = list(range(len(vocab)))
+        np.random.shuffle(idx)
+
+        topic_embeddings = embeddings[idx[:args.num_topics]]
+
+        for i, topic_words in enumerate(predefine_topics):
+            tmp_emb = np.zeros(args.rho_size)
+            for word in topic_words:
+                tmp_emb += vectors[word]
+            topic_embeddings[i] = tmp_emb / len(topic_words)
+        topic_embeddings = np.float32(topic_embeddings)
+
     else:
         embeddings = None
+        topic_embeddings = None
 
     # build model
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
-              train_embeddings=args.train_embeddings, embeddings=embeddings, enc_drop=args.enc_drop,
+              train_embeddings=args.train_embeddings, embeddings=embeddings, topic_embeddings=topic_embeddings,
+              enc_drop=args.enc_drop,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
     input_layer = tf.keras.layers.Input(batch_shape=(None, None), dtype=tf.int32)
     model = tf.keras.Model(input_layer, etm(input_layer))

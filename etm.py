@@ -80,7 +80,7 @@ class Decoder(layers.Layer):
 
 class ETM(tf.keras.layers.Layer):
     def __init__(self, num_topics, vocab_size, t_hidden_size, rho_size,
-                 theta_act, embeddings=None, train_embeddings=True, enc_drop=0.5, seq_length=128, name='etm', **kwargs):
+                 theta_act, embeddings=None, topic_embeddings=None, train_embeddings=True, enc_drop=0.5, seq_length=128, name='etm', **kwargs):
         super(ETM, self).__init__(name=name, **kwargs)
 
         self.num_topics = num_topics
@@ -96,12 +96,7 @@ class ETM(tf.keras.layers.Layer):
             self.alpha = tf.Variable(w_init(shape=(num_topics, rho_size)), trainable=True)
         else:
             self.rho = tf.Variable(embeddings, trainable=False)
-            idx = list(range(len(embeddings)))
-            np.random.shuffle(idx)
-            self.alpha = tf.Variable(embeddings[idx[:num_topics]], trainable=True)
-
-        ## topic embedding matrix
-
+            self.alpha = tf.Variable(topic_embeddings, trainable=True)
 
         ## vi encoder
         self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
