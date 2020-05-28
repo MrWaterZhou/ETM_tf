@@ -23,6 +23,10 @@ parser.add_argument('--theta_act', type=str, default='relu',
 parser.add_argument('--train_embeddings', type=int, default=0, help='whether to fix rho or train it')
 parser.add_argument('--enc_drop', type=float, default=0.0, help='dropout rate on encoder')
 
+
+### pred
+parser.add_argument('--batch_size', type=int, default=256)
+
 args = parser.parse_args()
 
 
