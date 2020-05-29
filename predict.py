@@ -77,6 +77,6 @@ if __name__ == '__main__':
                 topic_re = topic_represent[int(topic)]
                 tmp = "corpus:{}\n topic:{}\n pred:{}\n".format(''.join(row), ','.join(topic_re), th[int(topic)])
                 print(tmp)
-                res = "{}\t{}\t{}\n".format(''.join(row), ','.join(topic_re), th[int(topic)])
+                res = "{}\t{}\t{}\n".format(''.join(row.strip()), ','.join(topic_re), th[int(topic)])
                 f.write(res)
     f.close()
