@@ -13,7 +13,7 @@
 
 ## To Run
 
-To learn interpretable embeddings and topics using ETM on the 20NewsGroup dataset, run
+To learn interpretable embeddings and topics :
 ```
 python train.py --data_path data.txt --batch_size 512 --vocab_path vocab.txt --train_embeddings 1 --lr 0.0005 --epochs 1000
 ```
@@ -24,6 +24,16 @@ To learn interpretable topics using ETM with pre-fitted word embeddings :
 ```
 python train.py --data_path data.txt --batch_size 512 --vocab_path vocab.txt --train_embeddings 0 --lr 0.0005 --epochs 1000 --emb_path embeddings.txt```
 ```
+
+## Some Changes
+
+1. Using sequence of word ids as model input, easier to pre-process, but may cost more video memory(depend on the lenth of input)  
+
+2. Using DenseEncoder instead of original BOW encoder(mathematically equivalent), since you may encounter with nan weight using sparse matrix
+
+3. Metrics like ppl are not implemented 
+
+4. Predefined topic words(may help to get reasonable topics)
 
 ## Citation
 
