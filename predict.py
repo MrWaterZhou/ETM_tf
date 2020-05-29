@@ -43,8 +43,10 @@ def load_dataset(filenames, batch_size):
     return dataset
 
 
+
 if __name__ == '__main__':
     vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
+    vocab_dic = {x:i for i,x in enumerate(vocab)}
 
     # build model
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
@@ -52,22 +54,23 @@ if __name__ == '__main__':
               enc_drop=0,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
     input_layer = tf.keras.layers.Input(batch_shape=(None, None), dtype=tf.int32)
-    model = tf.keras.Model(input_layer, [etm(input_layer), input_layer])
+    model = tf.keras.Model(input_layer, etm(input_layer))
     model.load_weights(args.weight_path)
     print(model.summary())
 
     # loading data
-    data = load_dataset(args.data_path, args.batch_size)
+    corpus = open(args.corpus, 'r').readlines()
+    data = [[vocab_dic[word] for word in x.strip().split() if word in vocab_dic] for x in corpus]
+    data = tf.keras.preprocessing.sequence.pad_sequences(data,padding='post')
 
     # # start predict
     topic_rep = etm.generate_topic_words()
     topic_represent = [[vocab[i] for i in x] for x in topic_rep]
-    theta, corpus = model.predict(data)  # theta (batch, num_topics)
+    theta = model.predict(data, batch_size=256)  # theta (batch, num_topics)
     print(np.argmax(theta[:10], axis=-1))
 
     f = open('topic_result.txt', 'w')
     for th,row in zip(theta,corpus):
-        row = [vocab[i] for i in row]
         topics = np.argsort(th)[::-1][:10]
         for topic in topics:
             if th[int(topic)] > 0.05:
