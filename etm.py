@@ -59,13 +59,13 @@ class EncoderDense(layers.Layer):
         self.dropout_2 = layers.Dropout(enc_drop)
         self.dense_mean = layers.Dense(num_topic)
         self.dense_log_var = layers.Dense(num_topic)
+        self.mask_layer = layers.Lambda(lambda x: K.expand_dims(K.cast(K.greater(x, 0), tf.float32)), name="input_mask")
 
     def call(self, inputs):
         x = self.embedding_hidden(inputs)
         x = self.dense_proj_1(x)
         x = self.dropout_2(x)
-        input_mask = layers.Lambda(lambda x: K.expand_dims(K.cast(K.greater(x, 0), tf.float32)), name="input_mask")(
-            inputs)
+        input_mask = self.mask_layer(inputs)
         x = tf.reduce_mean(x * input_mask, axis=1)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
