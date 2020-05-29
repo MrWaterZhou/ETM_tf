@@ -50,7 +50,7 @@ if __name__ == '__main__':
     # build model
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
               train_embeddings=1, embeddings=None, topic_embeddings=None,
-              enc_drop=args.enc_drop,
+              enc_drop=0,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
     input_layer = tf.keras.layers.Input(batch_shape=(None, None), dtype=tf.int32)
     model = tf.keras.Model(input_layer, etm(input_layer))
