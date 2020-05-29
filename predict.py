@@ -15,6 +15,7 @@ parser.add_argument('--corpus',type=str)
 parser.add_argument('--weight_path', type=str, default='./results', help='path to save results')
 parser.add_argument('--emb_path',type=str)
 parser.add_argument('--vocab_path', type=str, default=None)
+parser.add_argument('--predefine_path', type=str, default=None)
 
 ### model-related arguments
 parser.add_argument('--num_topics', type=int, default=50, help='number of topics')
