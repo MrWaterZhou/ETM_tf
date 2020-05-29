@@ -51,19 +51,22 @@ class Encoder(layers.Layer):
         return mu_theta, logsigma_theta, tf.maximum(kl_theta, 5.0)
 
 
-class EncoderLSTM(layers.Layer):
-    def __init__(self, num_topic, t_hidden_size, vocab_size, enc_drop, name, **kwargs):
-        super(EncoderLSTM, self).__init__(name=name, **kwargs)
-        self.embedding_hidden = layers.Embedding(input_dim=vocab_size, output_dim=t_hidden_size, mask_zero=True)
-        self.lstm = layers.LSTM(t_hidden_size, return_sequences=False)
+class EncoderDense(layers.Layer):
+    def __init__(self, num_topic, t_hidden_size, vocab_size, enc_drop, name, activation, **kwargs):
+        super(EncoderDense, self).__init__(name=name, **kwargs)
+        self.embedding_hidden = layers.Embedding(input_dim=vocab_size, output_dim=t_hidden_size)
+        self.dense_proj_1 = layers.Dense(t_hidden_size, activation=activation)
         self.dropout_2 = layers.Dropout(enc_drop)
         self.dense_mean = layers.Dense(num_topic)
         self.dense_log_var = layers.Dense(num_topic)
 
     def call(self, inputs):
         x = self.embedding_hidden(inputs)
-        x = self.lstm(x)
+        x = self.dense_proj_1(x)
         x = self.dropout_2(x)
+        input_mask = layers.Lambda(lambda x: K.expand_dims(K.cast(K.greater(x, 0), tf.float32)), name="input_mask")(
+            inputs)
+        x = tf.reduce_mean(x * input_mask, axis=-1)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
         kl_theta = -0.5 * tf.reduce_sum(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
@@ -80,7 +83,8 @@ class Decoder(layers.Layer):
 
 class ETM(tf.keras.layers.Layer):
     def __init__(self, num_topics, vocab_size, t_hidden_size, rho_size,
-                 theta_act, embeddings=None, topic_embeddings=None, train_embeddings=True, enc_drop=0.5, seq_length=128, name='etm', **kwargs):
+                 theta_act, embeddings=None, topic_embeddings=None, train_embeddings=True, enc_drop=0.5, seq_length=128,
+                 name='etm', **kwargs):
         super(ETM, self).__init__(name=name, **kwargs)
 
         self.num_topics = num_topics
@@ -90,7 +94,7 @@ class ETM(tf.keras.layers.Layer):
         self.enc_drop = enc_drop
         self.seq_length = seq_length
 
-        w_init = tf.keras.initializers.RandomUniform(-1,1)
+        w_init = tf.keras.initializers.RandomUniform(-1, 1)
         if train_embeddings:
             self.rho = tf.Variable(w_init(shape=(vocab_size, rho_size)), trainable=True)
             self.alpha = tf.Variable(w_init(shape=(num_topics, rho_size)), trainable=True)
@@ -99,8 +103,8 @@ class ETM(tf.keras.layers.Layer):
             self.alpha = tf.Variable(topic_embeddings, trainable=True)
 
         ## vi encoder
-        self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
-        # self.encoder = EncoderLSTM(num_topics, t_hidden_size, vocab_size, enc_drop, 'encoder')
+        # self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
+        self.encoder = EncoderDense(num_topics, t_hidden_size, vocab_size, enc_drop, 'encoder',theta_act)
 
         ## vi decoder
         self.decoder = Decoder()
@@ -112,14 +116,13 @@ class ETM(tf.keras.layers.Layer):
         bows = tf.reduce_sum(tf.one_hot(input_layer, self.vocab_size), axis=1)
         bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([0, 1], self.vocab_size), axis=0)))(bows)
 
-        normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
+        # normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
 
-        mu_theta, logsigma_theta, kl_theta = self.encoder(normal_bows)
-        # mu_theta, logsigma_theta, kl_theta = self.encoder(input_layer)
+        # mu_theta, logsigma_theta, kl_theta = self.encoder(normal_bows)
+        mu_theta, logsigma_theta, kl_theta = self.encoder(input_layer)
 
         print(mu_theta, logsigma_theta, kl_theta)
         z = self.sampler([mu_theta, logsigma_theta])
-        # theta = layers.Softmax(axis=-1)(z)  # ( batch, num_topics )
         theta = layers.Softmax(axis=-1)(z)
 
         beta = tf.einsum('TE,VE->TV', self.alpha, self.rho)
@@ -150,6 +153,8 @@ class ETM(tf.keras.layers.Layer):
 
 if __name__ == '__main__':
     m = ETM(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
-    input = layers.Input(batch_shape=(None, 128), dtype=tf.int32)
+    input = layers.Input(batch_shape=(None, None), dtype=tf.int32)
     model = tf.keras.Model(input, m(input))
-    print(model.summary())
+    print(K.learning_phase())
+
+    print(model.predict(np.array([[1, 4, 5], [199, 200, 99]])))
