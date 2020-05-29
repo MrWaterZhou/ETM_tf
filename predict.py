@@ -111,30 +111,31 @@ if __name__ == '__main__':
     input_layer = tf.keras.layers.Input(batch_shape=(None, None), dtype=tf.int32)
     model = tf.keras.Model(input_layer, etm(input_layer))
     model.load_weights(args.weight_path)
+    print(model.get_weights())
 
     # loading data
-    data = load_dataset(args.data_path, args.batch_size)
-    corpus = open(args.corpus, 'r').readlines()
-
-    # start predict
-    topic_rep = etm.generate_topic_words()
-    topic_represent = [[vocab[i] for i in x] for x in topic_rep]
-    theta = model.predict(data)  # theta (batch, num_topics)
-    print(np.argmax(theta[:10],axis=-1))
-
-    f = open('topic_result.txt','w')
-    for i, th in enumerate(theta):
-        row = corpus[i].strip()
-        topics = np.argsort(th)[::-1]
-        for topic in topics:
-            if th[int(topic)] > 0.05:
-                topic_re = topic_represent[int(topic)]
-                tmp = "corpus:{}\n topic:{}\n pred:{}\n".format(''.join(row), ','.join(topic_re), th[int(topic)])
-                print(tmp)
-                res = "{}\t{}\t{}\n".format(''.join(row), ','.join(topic_re), th[int(topic)])
-                f.write(res)
-    f.close()
-
-
-
-
+    # data = load_dataset(args.data_path, args.batch_size)
+    # corpus = open(args.corpus, 'r').readlines()
+    #
+    # # start predict
+    # topic_rep = etm.generate_topic_words()
+    # topic_represent = [[vocab[i] for i in x] for x in topic_rep]
+    # theta = model.predict(data)  # theta (batch, num_topics)
+    # print(np.argmax(theta[:10],axis=-1))
+    #
+    # f = open('topic_result.txt','w')
+    # for i, th in enumerate(theta):
+    #     row = corpus[i].strip()
+    #     topics = np.argsort(th)[::-1]
+    #     for topic in topics:
+    #         if th[int(topic)] > 0.05:
+    #             topic_re = topic_represent[int(topic)]
+    #             tmp = "corpus:{}\n topic:{}\n pred:{}\n".format(''.join(row), ','.join(topic_re), th[int(topic)])
+    #             print(tmp)
+    #             res = "{}\t{}\t{}\n".format(''.join(row), ','.join(topic_re), th[int(topic)])
+    #             f.write(res)
+    # f.close()
+    #
+    #
+    #
+    #
