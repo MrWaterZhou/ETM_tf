@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description='The Embedded Topic Model')
 parser.add_argument('--data_path', type=str, default='data/20ng', help='directory containing data')
 parser.add_argument('--corpus',type=str)
 parser.add_argument('--weight_path', type=str, default='./results', help='path to save results')
+parser.add_argument('--emb_path',type=str)
 parser.add_argument('--vocab_path', type=str, default=None)
 
 ### model-related arguments
@@ -62,13 +63,52 @@ class VisCallback(tf.keras.callbacks.Callback):
 
 if __name__ == '__main__':
     vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
+    vocab_set = set(vocab)
+    predefine_topics = [x.strip().split(' ') for x in
+                        open(args.predefine_path, 'r').readlines()] if args.predefine_path is not None else []
+
+    if args.emb_path is not None:
+        vectors = {}
+        with open(args.emb_path, 'r') as f:
+            for l in f:
+                line = l.split()
+                word = line[0]
+                if word in vocab_set:
+                    vect = np.array(line[1:]).astype(np.float)
+                    vectors[word] = vect
+        embeddings = np.zeros((len(vocab), args.rho_size))
+        words_found = 0
+        for i, word in enumerate(vocab):
+            try:
+                embeddings[i] = vectors[word]
+                words_found += 1
+            except KeyError:
+                embeddings[i] = np.random.normal(scale=0.6, size=(args.rho_size,))
+        embeddings = np.float32(embeddings)
+
+        idx = list(range(len(vocab)))
+        np.random.shuffle(idx)
+
+        topic_embeddings = embeddings[idx[:args.num_topics]]
+
+        for i, topic_words in enumerate(predefine_topics):
+            tmp_emb = np.zeros(args.rho_size)
+            for word in topic_words:
+                tmp_emb += vectors[word]
+            topic_embeddings[i] = tmp_emb / len(topic_words)
+        topic_embeddings = np.float32(topic_embeddings)
+
+    else:
+        embeddings = None
+        topic_embeddings = None
+
     # build model
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
-              train_embeddings=1, embeddings=None, enc_drop=args.enc_drop,
+              train_embeddings=args.train_embeddings, embeddings=embeddings, topic_embeddings=topic_embeddings,
+              enc_drop=args.enc_drop,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
     input_layer = tf.keras.layers.Input(batch_shape=(None, None), dtype=tf.int32)
     model = tf.keras.Model(input_layer, etm(input_layer))
-    print(model.summary())
     model.load_weights(args.weight_path)
 
     # loading data
