@@ -66,7 +66,7 @@ class EncoderDense(layers.Layer):
         x = self.dense_proj_1(x)
         x = self.dropout_2(x)
         input_mask = self.mask_layer(inputs)
-        x = tf.reduce_mean(x * input_mask, axis=1)
+        x = tf.reduce_sum(x * input_mask, axis=1) / tf.reduce_sum(input_mask, axis=1)
         mu_theta = self.dense_mean(x)
         logsigma_theta = self.dense_log_var(x)
         kl_theta = -0.5 * tf.reduce_sum(1 + logsigma_theta - tf.pow(mu_theta, 2) - tf.exp(logsigma_theta),
