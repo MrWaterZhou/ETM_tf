@@ -79,7 +79,7 @@ if __name__ == '__main__':
     topic_rep = etm.generate_topic_words()
     topic_represent = [[vocab[i] for i in x] for x in topic_rep]
     theta = model.predict(data)  # theta (batch, num_topics)
-    print(theta[:10])
+    print(np.argmax(theta[:10],axis=-1))
 
     f = open('topic_result.txt','w')
     for i, th in enumerate(theta):
