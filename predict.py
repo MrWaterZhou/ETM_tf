@@ -83,7 +83,7 @@ if __name__ == '__main__':
     f = open('topic_result.txt','w')
     for i, th in enumerate(theta):
         row = corpus[i].strip()
-        topics = th.argsort().cpu().numpy()[::-1]
+        topics = np.argsort(th)[::-1]
         for topic in topics:
             if th[int(topic)] > 0.05:
                 topic_re = topic_represent[int(topic)]
