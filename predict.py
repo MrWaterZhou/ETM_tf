@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser(description='The Embedded Topic Model')
 
 ### data and file related arguments
 parser.add_argument('--data_path', type=str, default='data/20ng', help='directory containing data')
+parser.add_argument('--corpus',type=str)
 parser.add_argument('--weight_path', type=str, default='./results', help='path to save results')
 parser.add_argument('--vocab_path', type=str, default=None)
 
@@ -22,7 +23,6 @@ parser.add_argument('--theta_act', type=str, default='relu',
                     help='tanh, softplus, relu, rrelu, leakyrelu, elu, selu, glu)')
 parser.add_argument('--train_embeddings', type=int, default=0, help='whether to fix rho or train it')
 parser.add_argument('--enc_drop', type=float, default=0.0, help='dropout rate on encoder')
-
 
 ### pred
 parser.add_argument('--batch_size', type=int, default=256)
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
     # build model
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
-              train_embeddings=args.train_embeddings, embeddings=None, enc_drop=args.enc_drop,
+              train_embeddings=1, embeddings=None, enc_drop=args.enc_drop,
               vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
     input_layer = tf.keras.layers.Input(batch_shape=(None, None), dtype=tf.int32)
     model = tf.keras.Model(input_layer, etm(input_layer))
@@ -73,12 +73,26 @@ if __name__ == '__main__':
 
     # loading data
     data = load_dataset(args.data_path, args.batch_size)
+    corpus = open(args.corpus, 'r').readlines()
 
     # start predict
-    pred = model.predict(data)  # theta (batch, num_topics)
-    result = np.argwhere(pred > 0.5)
-    f = open('possible_result.csv','w')
-    for line in result:
-        f.write('{} {}\n'.format(line[0],line[1]))
+    topic_rep = etm.generate_topic_words()
+    topic_represent = [[vocab[i] for i in x] for x in topic_rep]
+    theta = model.predict(data)  # theta (batch, num_topics)
+
+    f = open('topic_result.txt','w')
+    for i, th in enumerate(theta):
+        row = corpus[i].strip()
+        topics = th.argsort().cpu().numpy()[::-1]
+        for topic in topics:
+            if th[int(topic)] > 0.05:
+                topic_re = topic_represent[int(topic)]
+                tmp = "corpus:{}\n topic:{}\n pred:{}\n".format(''.join(row), ','.join(topic_re), th[int(topic)])
+                print(tmp)
+                res = "{}\t{}\t{}\n".format(''.join(row), ','.join(topic_re), th[int(topic)])
+                f.write(res)
     f.close()
+
+
+
 
