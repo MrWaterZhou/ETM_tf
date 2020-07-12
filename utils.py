@@ -22,8 +22,12 @@ class EngDataUtil:
         self.vocab_size = self.tokenizer.vocab_size
         # self.pat = re.compile('#[0-9]{3}')
 
+    def encode(self, text_tensor):
+        encoded_text = self.tokenizer.encode(text_tensor.numpy())
+        return encoded_text
+
     def encode_map_fn(self, text):
-        ids = tf.py_function(self.tokenizer.encode, inp=[text], Tout=(tf.int32))
+        ids = tf.py_function(self.encode, inp=[text], Tout=(tf.int32))
         ids.set_shape([None])
         return ids
 
