@@ -49,6 +49,7 @@ class EngDataUtil:
 
 if __name__ == '__main__':
     du = EngDataUtil('vocab.txt')
-    ds = du.load_dataset('sample.txt',3)
+    ds = du.load_dataset('data/eng_sample.txt',64)
     for i in ds:
         print(i)
+        break
