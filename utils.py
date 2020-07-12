@@ -44,6 +44,7 @@ class EngDataUtil:
         dataset = tf.data.TextLineDataset(filenames)
         dataset = dataset.map(self.encode_map_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         dataset = dataset.padded_batch(batch_size, ([None]))
+        dataset = dataset.cache('data/train_cache')
         # dataset = tf.data.Dataset.zip((dataset, tf.data.Dataset.from_generator(_fake_gen, tf.int32))).shuffle(64)
         return dataset
 
