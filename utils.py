@@ -19,10 +19,10 @@ class EngDataUtil:
     def __init__(self, vocab_path):
         self.vocab = load_vocab(vocab_path)
         self.vocab_size = len(self.vocab)
-        self.pat = re.compile('#[0-9]{3}')
+        # self.pat = re.compile('#[0-9]{3}')
 
     def text_to_ids(self, text):
-        text = self.pat.sub('', text)
+        # text = self.pat.sub('', text)
         words = text_to_word_sequence(text)
         ids = [self.vocab[word] for word in words if word in self.vocab]
         return ids
