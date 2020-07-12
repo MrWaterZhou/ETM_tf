@@ -30,7 +30,7 @@ class EngDataUtil:
 
     def encode(self, text_tensor):
         ids = self.tokenizer.encode(text_tensor.numpy())
-        bows = self.ids_to_bows()
+        bows = self.ids_to_bows(ids)
         return ids, bows
 
     def encode_map_fn(self, text):
