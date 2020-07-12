@@ -31,12 +31,11 @@ class EngDataUtil:
     def encode(self, text_tensor):
         ids = self.tokenizer.encode(text_tensor.numpy())
         # bows = self.ids_to_bows(ids)
-        return ids
+        return ids, 0
 
     def encode_map_fn(self, text):
-        ids = tf.py_function(self.encode, inp=[text], Tout=(tf.int32))
+        ids, _ = tf.py_function(self.encode, inp=[text], Tout=(tf.int32, tf.int32))
         ids.set_shape([None])
-        # bows.set_shape([None])
         return ids
 
     def load_dataset(self, filenames, batch_size):
@@ -45,12 +44,11 @@ class EngDataUtil:
         dataset = tf.data.TextLineDataset(filenames)
         dataset = dataset.map(self.encode_map_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         dataset = dataset.padded_batch(batch_size, ([None]))
-        dataset = tf.data.Dataset.zip((dataset, tf.data.Dataset.from_generator(_fake_gen, tf.int32))).shuffle(64)
+        # dataset = tf.data.Dataset.zip((dataset, tf.data.Dataset.from_generator(_fake_gen, tf.int32))).shuffle(64)
         return dataset
 
 if __name__ == '__main__':
-    du = EngDataUtil('vocab_new.txt')
-    ds = du.load_dataset('data/eng_sample.txt', 64)
-    for i,j in ds:
+    du = EngDataUtil('vocab.txt')
+    ds = du.load_dataset('sample.txt',3)
+    for i in ds:
         print(i)
-        break
