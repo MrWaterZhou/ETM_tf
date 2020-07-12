@@ -113,13 +113,9 @@ class ETM(tf.keras.layers.Layer):
         self.sampler = Reparameterize()
 
     def call(self, input_layer, **kwargs):
-        bows = tf.reduce_sum(tf.one_hot(input_layer, self.vocab_size), axis=1)
-        bows = layers.Lambda(lambda x: x * (1 - tf.reduce_sum(tf.one_hot([0, 1], self.vocab_size), axis=0)))(bows)
+        input_ids, bows = input_layer
 
-        # normal_bows = bows / tf.expand_dims(tf.reduce_sum(bows, axis=-1), -1)
-
-        # mu_theta, logsigma_theta, kl_theta = self.encoder(normal_bows)
-        mu_theta, logsigma_theta, kl_theta = self.encoder(input_layer)
+        mu_theta, logsigma_theta, kl_theta = self.encoder(input_ids)
 
         print(mu_theta, logsigma_theta, kl_theta)
         z = self.sampler([mu_theta, logsigma_theta])
@@ -153,8 +149,8 @@ class ETM(tf.keras.layers.Layer):
 
 if __name__ == '__main__':
     m = ETM(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
-    input = layers.Input(batch_shape=(None, None), dtype=tf.int32)
-    model = tf.keras.Model(input, m(input))
-    print(K.learning_phase())
+    input_ids = layers.Input(batch_shape=(None, None), dtype=tf.int32)
+    bows = layers.Input(batch_shape=(None,1000),dtype=tf.float32)
+    model = tf.keras.Model([input_ids,bows], m([input_ids,bows]))
 
-    print(model.predict(np.array([[1, 4, 5], [199, 200, 99]])))
+    print(model.summary())

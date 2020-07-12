@@ -1,11 +1,11 @@
 import argparse
+import os
+
+import numpy as np
+import tensorflow as tf
 
 from etm import ETM
-import numpy as np
-import pandas as pd
-import tensorflow as tf
-import os
-from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from utils import EngDataUtil
 
 parser = argparse.ArgumentParser(description='The Embedded Topic Model')
 
@@ -38,22 +38,6 @@ parser.add_argument('--anneal_lr', type=int, default=0, help='whether to anneal 
 args = parser.parse_args()
 
 
-def load_dataset(filenames, batch_size):
-    if not isinstance(filenames, list):
-        filenames = [filenames]
-
-    def parse(line):
-        line = tf.strings.split(line)
-        x = tf.strings.to_number(line, tf.float32)
-        return x
-
-    dataset = tf.data.TextLineDataset(filenames)
-    dataset = dataset.map(parse, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    dataset = dataset.shuffle(2048)
-    dataset = dataset.padded_batch(batch_size, (None,))
-    return dataset
-
-
 class VisCallback(tf.keras.callbacks.Callback):
     def __init__(self, etm: ETM, vocab: list, save_path: str):
         self.etm = etm
@@ -70,7 +54,7 @@ class VisCallback(tf.keras.callbacks.Callback):
 
 
 if __name__ == '__main__':
-
+    du = EngDataUtil(args.vocab_path)
     vocab = [x.strip() for x in open(args.vocab_path, 'r').readlines()]
     vocab_set = set(vocab)
     predefine_topics = [x.strip().split(' ') for x in
@@ -121,7 +105,7 @@ if __name__ == '__main__':
     print(model.summary())
 
     # loading data
-    data = load_dataset(args.data_path, args.batch_size)
+    data = du.load_dataset(args.data_path, args.batch_size)
 
     # start training
     if not os.path.exists(args.save_path):
