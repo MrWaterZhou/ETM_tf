@@ -10,22 +10,22 @@ from utils import EngDataUtil
 parser = argparse.ArgumentParser(description='The Embedded Topic Model')
 
 ### data and file related arguments
-parser.add_argument('--data_path', type=str, default='data/20ng', help='directory containing data')
+parser.add_argument('--data_path', type=str, default='data/eng_sample', help='directory containing data')
 parser.add_argument('--emb_path', type=str, default=None,
                     help='directory containing word embeddings')
 parser.add_argument('--save_path', type=str, default='./results', help='path to save results')
-parser.add_argument('--batch_size', type=int, default=1000, help='input batch size for training')
-parser.add_argument('--vocab_path', type=str, default=None)
+parser.add_argument('--batch_size', type=int, default=512, help='input batch size for training')
+parser.add_argument('--vocab_path', type=str, default='vocab_new.txt')
 parser.add_argument('--predefine_path', type=str, default=None)
 
 ### model-related arguments
 parser.add_argument('--num_topics', type=int, default=50, help='number of topics')
-parser.add_argument('--rho_size', type=int, default=300, help='dimension of rho')
-parser.add_argument('--t_hidden_size', type=int, default=800, help='dimension of hidden space of q(theta)')
+parser.add_argument('--rho_size', type=int, default=256, help='dimension of rho')
+parser.add_argument('--t_hidden_size', type=int, default=512, help='dimension of hidden space of q(theta)')
 parser.add_argument('--theta_act', type=str, default='relu',
                     help='tanh, softplus, relu, rrelu, leakyrelu, elu, selu, glu)')
-parser.add_argument('--train_embeddings', type=int, default=0, help='whether to fix rho or train it')
-parser.add_argument('--enc_drop', type=float, default=0.0, help='dropout rate on encoder')
+parser.add_argument('--train_embeddings', type=int, default=1, help='whether to fix rho or train it')
+parser.add_argument('--enc_drop', type=float, default=0.2, help='dropout rate on encoder')
 
 ### optimization-related arguments
 parser.add_argument('--lr', type=float, default=0.005, help='learning rate')
