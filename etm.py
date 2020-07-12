@@ -1,8 +1,8 @@
 import tensorflow as tf
-import numpy as np
+# import numpy as np
 from tensorflow.keras import layers
 from tensorflow.keras import backend as K
-from tensorflow_core.python import GlorotUniform, GlorotNormal
+# from tensorflow_core.python import GlorotUniform, GlorotNormal
 
 
 class SoftmaxWithMask(tf.keras.layers.Layer):
