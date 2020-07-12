@@ -13,7 +13,7 @@ if __name__ == '__main__':
         with open(args.source_path, 'r') as f:
             for line in f:
                 words = text_to_word_sequence(line)
-                for word in word:
+                for word in words:
                     if word not in word_count:
                         word_count[word] = 0
                     word_count[word] += 1
