@@ -22,13 +22,21 @@ class EngDataUtil:
         self.vocab_size = self.tokenizer.vocab_size
         # self.pat = re.compile('#[0-9]{3}')
 
+    def ids_to_bows(self, ids: list):
+        bows = [0] * self.vocab_size
+        for id in ids:
+            bows[id] += 1
+        return bows
+
     def encode(self, text_tensor):
-        encoded_text = self.tokenizer.encode(text_tensor.numpy())
-        return encoded_text
+        ids = self.tokenizer.encode(text_tensor.numpy())
+        # bows = self.ids_to_bows(ids)
+        return ids
 
     def encode_map_fn(self, text):
         ids = tf.py_function(self.encode, inp=[text], Tout=(tf.int32))
         ids.set_shape([None])
+        # bows.set_shape([None])
         return ids
 
     def load_dataset(self, filenames, batch_size):
@@ -36,11 +44,11 @@ class EngDataUtil:
             filenames = [filenames]
         dataset = tf.data.TextLineDataset(filenames)
         dataset = dataset.map(self.encode_map_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        dataset = dataset.padded_batch(batch_size, [None])
+        dataset = dataset.padded_batch(batch_size, ([None]))
         dataset = tf.data.Dataset.zip((dataset, tf.data.Dataset.from_generator(_fake_gen, tf.int32))).shuffle(64)
         return dataset
 
-if __name__=='__main__':
+if __name__ == '__main__':
     du = EngDataUtil('vocab_new.txt')
     ds = du.load_dataset('data/eng_sample.txt')
     for i,j in ds:
