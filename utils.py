@@ -22,28 +22,16 @@ class EngDataUtil:
         self.vocab_size = self.tokenizer.vocab_size
         # self.pat = re.compile('#[0-9]{3}')
 
-    def ids_to_bows(self, ids: list):
-        bows = [0] * self.vocab_size
-        for id in ids:
-            bows[id] += 1
-        return bows
-
-    def encode(self, text_tensor):
-        ids = self.tokenizer.encode(text_tensor.numpy())
-        bows = tf.reduce_sum(tf.one_hot(ids,self.vocab_size),axis=0)
-        return ids, bows
-
     def encode_map_fn(self, text):
-        ids, bows = tf.py_function(self.encode, inp=[text], Tout=(tf.int32, tf.float32))
+        ids = tf.py_function(self.tokenizer.encode, inp=[text], Tout=(tf.int32))
         ids.set_shape([None])
-        bows.set_shape([None])
-        return ids, bows
+        return ids
 
     def load_dataset(self, filenames, batch_size):
         if not isinstance(filenames, list):
             filenames = [filenames]
         dataset = tf.data.TextLineDataset(filenames)
         dataset = dataset.map(self.encode_map_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        dataset = dataset.padded_batch(batch_size, ([None], [None]))
+        dataset = dataset.padded_batch(batch_size, ([None]))
         dataset = tf.data.Dataset.zip((dataset, tf.data.Dataset.from_generator(_fake_gen, tf.int32))).shuffle(64)
         return dataset

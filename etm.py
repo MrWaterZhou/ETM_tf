@@ -104,7 +104,7 @@ class ETM(tf.keras.layers.Layer):
 
         ## vi encoder
         # self.encoder = Encoder(num_topics, t_hidden_size, 'encoder', theta_act, enc_drop)
-        self.encoder = EncoderDense(num_topics, t_hidden_size, vocab_size, enc_drop, 'encoder',theta_act)
+        self.encoder = EncoderDense(num_topics, t_hidden_size, vocab_size, enc_drop, 'encoder', theta_act)
 
         ## vi decoder
         self.decoder = Decoder()
@@ -112,26 +112,25 @@ class ETM(tf.keras.layers.Layer):
         ## sampling
         self.sampler = Reparameterize()
 
-    def call(self, input_layer, **kwargs):
-        input_ids, bows = input_layer
-
+    def call(self, input_ids, **kwargs):
         mu_theta, logsigma_theta, kl_theta = self.encoder(input_ids)
 
         print(mu_theta, logsigma_theta, kl_theta)
         z = self.sampler([mu_theta, logsigma_theta])
-        theta = layers.Softmax(axis=-1)(z)
+        theta = layers.Softmax(axis=-1)(z)  # (batch, num_topic)
 
-        beta = tf.einsum('TE,VE->TV', self.alpha, self.rho)
+        beta = tf.einsum('TE,VE->TV', self.alpha, self.rho)  # (num_topic, num_vocab)
         beta = layers.Softmax(axis=-1)(beta)
 
         lookup_matrix = self.decoder([theta, beta])  # (batch, num_vocab)
-
-        recon_loss = - tf.reduce_sum(lookup_matrix * bows, axis=-1)
+        lookup_matrix = tf.einsum('BV->VB',lookup_matrix) # (num_vocab, batch')
+        recon_loss = tf.nn.embedding_lookup(lookup_matrix, input_ids) # (batch, seq_size, batch')
+        recon_loss = self.encoder.mask_layer(input_ids) * recon_loss
+        recon_loss = tf.einsum('BSN->BN',recon_loss)
+        recon_loss = - tf.linalg.diag_part(recon_loss)
 
         loss = tf.reduce_mean(recon_loss) + tf.reduce_mean(kl_theta)
 
-        # loss = tf.reduce_mean(loss)
-        # loss = tf.keras.layers.Activation('linear', dtype=tf.float32, name='lossososo')(loss)
         self.add_loss(loss)
         self.add_metric(recon_loss, name='recon_loss', aggregation='mean')
         self.add_metric(kl_theta, name='kl_theta', aggregation='mean')
@@ -150,7 +149,35 @@ class ETM(tf.keras.layers.Layer):
 if __name__ == '__main__':
     m = ETM(num_topics=30, vocab_size=1000, t_hidden_size=128, rho_size=128, theta_act='relu')
     input_ids = layers.Input(batch_shape=(None, None), dtype=tf.int32)
-    bows = layers.Input(batch_shape=(None,1000),dtype=tf.float32)
-    model = tf.keras.Model([input_ids,bows], m([input_ids,bows]))
+
+    model = tf.keras.Model(input_ids, m(input_ids))
 
     print(model.summary())
+    a = tf.constant([[1,2,3],[1,0,0]])
+    b = tf.constant([[1],[2]])
+    print(model.predict(a))
+    print(model.predict(b))
+
+    # batch = 2
+    # num_topic = 30
+    # num_vocab = 1000
+    #
+    # theta = tf.random.uniform((batch, num_topic))
+    # beta = tf.random.uniform((num_topic, num_vocab))
+    #
+    # ids = tf.constant([[4, 7, 0], [1, 6, 9]])
+    # bows = tf.reduce_sum(tf.one_hot(ids, num_vocab), 1)
+    #
+    # lookup_matrix = tf.math.log(1e-5 + tf.matmul(theta, beta))
+    # x0 = tf.reduce_sum(lookup_matrix * bows, axis=-1)
+    #
+    # lookup_matrix_T = tf.einsum('BV->VB',lookup_matrix)
+    # x1 = tf.nn.embedding_lookup(lookup_matrix_T,ids)
+    # x1 = tf.einsum('BSN->BN',x1)
+    # x1 = tf.linalg.diag_part(x1)
+    #
+    # print(x0)
+    # print(x1)
+    #
+    #
+    #
