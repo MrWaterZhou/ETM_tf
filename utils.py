@@ -6,7 +6,7 @@ import tensorflow_datasets as tfds
 
 def load_vocab(filename):
     with open(filename, 'r') as f:
-        vocab = {word.strip(): i for i, word in enumerate(f)}
+        vocab = [word.strip() for word in f]
     return vocab
 
 
@@ -17,15 +17,10 @@ def _fake_gen():
 
 class EngDataUtil:
     def __init__(self, vocab_path):
-        self.vocab = load_vocab(vocab_path)
-        self.vocab_size = len(self.vocab)
+        self.vocab_list = load_vocab(vocab_path)
+        self.tokenizer = tfds.features.text.TokenTextEncoder(self.vocab_list)
+        self.vocab_size = self.tokenizer.vocab_size
         # self.pat = re.compile('#[0-9]{3}')
-
-    def text_to_ids(self, text):
-        # text = self.pat.sub('', text)
-        words = text_to_word_sequence(text)
-        ids = [self.vocab[word] for word in words if word in self.vocab]
-        return ids
 
     def ids_to_bows(self, ids: list):
         bows = [0] * self.vocab_size
@@ -34,7 +29,7 @@ class EngDataUtil:
         return bows
 
     def encode(self, text_tensor):
-        ids = self.text_to_ids(text_tensor.numpy())
+        ids = self.tokenizer.encode(text_tensor.numpy())
         bows = self.ids_to_bows()
         return ids, bows
 
