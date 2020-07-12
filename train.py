@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser(description='The Embedded Topic Model')
 
 ### data and file related arguments
 parser.add_argument('--data_path', type=str, default='data/eng_sample.txt', help='directory containing data')
-parser.add_argument('--emb_path', type=str, default=None,
+parser.add_argument('--emb_path', type=str, default='/home/zhou/result/eng_sample.vec',
                     help='directory containing word embeddings')
 parser.add_argument('--save_path', type=str, default='./results', help='path to save results')
 parser.add_argument('--batch_size', type=int, default=512, help='input batch size for training')
@@ -64,14 +64,17 @@ if __name__ == '__main__':
         vectors = {}
         with open(args.emb_path, 'r') as f:
             for l in f:
-                line = l.split()
-                word = line[0]
-                if word in vocab_set:
-                    vect = np.array(line[1:]).astype(np.float)
-                    vectors[word] = vect
-        embeddings = np.zeros((len(vocab), args.rho_size))
+                try:
+                    line = l.split()
+                    word = line[0]
+                    if word in vocab_set:
+                        vect = np.array(line[1:]).astype(np.float)
+                        vectors[word] = vect
+                except:
+                    pass
+        embeddings = np.zeros((du.vocab_size, args.rho_size))
         words_found = 0
-        for i, word in enumerate(vocab):
+        for i, word in enumerate(du.tokenizer.tokens + ["UNK","UNK"]):
             try:
                 embeddings[i] = vectors[word]
                 words_found += 1
