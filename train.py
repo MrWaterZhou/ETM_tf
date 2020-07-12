@@ -10,7 +10,7 @@ from utils import EngDataUtil
 parser = argparse.ArgumentParser(description='The Embedded Topic Model')
 
 ### data and file related arguments
-parser.add_argument('--data_path', type=str, default='data/eng_sample', help='directory containing data')
+parser.add_argument('--data_path', type=str, default='data/eng_sample.txt', help='directory containing data')
 parser.add_argument('--emb_path', type=str, default=None,
                     help='directory containing word embeddings')
 parser.add_argument('--save_path', type=str, default='./results', help='path to save results')
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     etm = ETM(num_topics=args.num_topics, rho_size=args.rho_size, theta_act=args.theta_act,
               train_embeddings=args.train_embeddings, embeddings=embeddings, topic_embeddings=topic_embeddings,
               enc_drop=args.enc_drop,
-              vocab_size=len(vocab), t_hidden_size=args.t_hidden_size)
+              vocab_size=du.vocab_size, t_hidden_size=args.t_hidden_size)
     input_layer = tf.keras.layers.Input(batch_shape=(None, None), dtype=tf.int32)
     model = tf.keras.Model(input_layer, etm(input_layer))
     print(model.summary())
