@@ -39,3 +39,10 @@ class EngDataUtil:
         dataset = dataset.padded_batch(batch_size, [None])
         dataset = tf.data.Dataset.zip((dataset, tf.data.Dataset.from_generator(_fake_gen, tf.int32))).shuffle(64)
         return dataset
+
+if __name__=='__main__':
+    du = EngDataUtil('vocab_new.txt')
+    ds = du.load_dataset('data/eng_sample.txt')
+    for i,j in ds:
+        print(i)
+        break
