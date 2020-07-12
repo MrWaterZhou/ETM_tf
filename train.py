@@ -110,7 +110,7 @@ if __name__ == '__main__':
     # start training
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
-    vis = VisCallback(etm, vocab, args.save_path)
+    vis = VisCallback(etm, du.tokenizer.tokens, args.save_path)
 
     optimizer = tf.keras.optimizers.Adam(args.lr)
     model.compile(optimizer=optimizer, loss=None)
